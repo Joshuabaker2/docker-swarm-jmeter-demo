@@ -19,7 +19,7 @@ server.route({
 		// waste some cycles to make this slow
 
 		const numbers = [];
-		for (let i = 0; i < 42949600; i++) {
+		for (let i = 0; i < 4294960; i++) {
 			numbers.push(Math.random());
 		}
 

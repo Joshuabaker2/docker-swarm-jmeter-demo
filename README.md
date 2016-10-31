@@ -30,7 +30,7 @@ Tag your image to point to the registry:
 docker tag swarm-jmeter-demo localhost:5000/swarm-jmeter-demo
 ```
 
-Push your image to your registry. Make sure to replace `<local-ip-address>` with your local ip address (can use `ifconfig`)
+Push your image to your registry. 
 ```
 docker push localhost:5000/swarm-jmeter-demo
 ```
@@ -107,9 +107,20 @@ And then restart the daemon:
 sudo /etc/init.d/docker restart
 ```
 
-10. Now you can start your service with the manager.
+Test that the container can be fetched inside a worker node from your local repository (replacing the ip address with your local host ip address):
 ```
-docker service create --replicas 1 --name swarm-jmeter-demo -p "9000:9000" 192.168.0.74:5000/swarm-jmeter-demo
+docker run -d -p 9000:9000 --name swarm-jmeter-demo 192.168.0.74:5000/swarm-jmeter-demo
+```
+And make sure it is accessable locally on that node: 
+```
+curl localhost:9000/random
+```
+
+10. Now you can start your service with the manager. First, we want to create an overlay network so the different nodes are accessible, and then we want to create the service in that network.
+```
+docker network create -d overlay swarm-demo
+
+docker service create --replicas 1 --name swarm-jmeter-demo --network swarm-demo -p "9000:9000" 192.168.0.74:5000/swarm-jmeter-demo
 ```
 You can check it out to see information by running:
 ```
