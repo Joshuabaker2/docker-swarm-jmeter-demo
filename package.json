@@ -1,0 +1,14 @@
+{
+  "name": "swarm-jmeter-demo",
+  "version": "1.0.0",
+  "description": "A demo to show that clusters last longer under load testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Josh Baker",
+  "license": "ISC",
+  "dependencies": {
+    "hapi": "^15.2.0"
+  }
+}
