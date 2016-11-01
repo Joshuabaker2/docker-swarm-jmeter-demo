@@ -44,14 +44,14 @@ docker run -d -p 9000:9000 --name swarm-jmeter-demo localhost:5000/swarm-jmeter-
 
 4. Create 3 virtual machines with 200 mb of RAM (so they are quickly overwhelmed)
 ```
-docker-machine create --driver virtualbox --virtualbox-memory 200 manager1
-docker-machine create --driver virtualbox --virtualbox-memory 200 worker1
-docker-machine create --driver virtualbox --virtualbox-memory 200 worker2
+docker-machine create --driver virtualbox --virtualbox-memory 600 manager1
+docker-machine create --driver virtualbox --virtualbox-memory 600 worker1
+docker-machine create --driver virtualbox --virtualbox-memory 600 worker2
 ```
 
 NOTE: If the creation of the docker-machine hangs, try giving them more memory.
 
-Before we get any further, let's set up port forwarding for the manager node. We can do this either with the GUI or the CLI. We need port 9000 available, because that is the port for our web server. 
+Before we get any further, let's set up port forwarding for the manager node. We can do this either with the GUI or the CLI2 We need port 9000 available, because that is the port for our web server. 
 
 ```
 VBoxManage modifyvm "manager1" --natpf1 rule1,tcp,,9000,,9000
@@ -70,14 +70,14 @@ docker-machine ssh manager1
 
 7. Initialize the swarm
 ```
-$ docker swarm init --advertise-addr <manager1 ip>
+$ docker swarm init --advertise-addr <manager1-ip>
 Swarm initialized: current node (dizg6iq1tt848dj0qn4y77pff) is now a manager.
 
 To add a worker to this swarm, run the following command:
 
     docker swarm join \
     --token SWMTKN-1-1q5pk2o0qbf2o1l6ug6xdw1b9xq1ou8iehsslrl02fs8h1kw15-1d1qm3t15bjn0z4crjuvciadl \
-    192.168.99.100:2377
+    <manager1-ip>:2377
 
 To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
 
@@ -88,7 +88,7 @@ To add a manager to this swarm, run 'docker swarm join-token manager' and follow
 docker-machine ssh worker1
 docker swarm join \
     --token SWMTKN-1-1q5pk2o0qbf2o1l6ug6xdw1b9xq1ou8iehsslrl02fs8h1kw15-1d1qm3t15bjn0z4crjuvciadl \
-    192.168.99.100:2377
+    <manager1-ip>:2377
 ```
 
 Do this for both nodes. To verify that they have joined the swarm, run `docker node ls` in manager1 to see all the nodes. 
@@ -99,7 +99,7 @@ sudo vi /etc/docker/daemon.json
 ```
 And add in the following, where the ip address is the ip address of your local host running the registry.
 ```
-{ "insecure-registries":["192.168.0.74:5000"] }
+{ "insecure-registries":["<local-host-ip>:5000"] }
 
 ```
 And then restart the daemon:
@@ -109,7 +109,7 @@ sudo /etc/init.d/docker restart
 
 Test that the container can be fetched inside a worker node from your local repository (replacing the ip address with your local host ip address):
 ```
-docker run -d -p 9000:9000 --name swarm-jmeter-demo 192.168.0.74:5000/swarm-jmeter-demo
+docker run -d -p 9000:9000 --name swarm-jmeter-demo <local-host-ip>:5000/swarm-jmeter-demo
 ```
 And make sure it is accessable locally on that node: 
 ```
@@ -120,8 +120,9 @@ curl localhost:9000/random
 ```
 docker network create -d overlay swarm-demo
 
-docker service create --replicas 1 --name swarm-jmeter-demo --network swarm-demo -p "9000:9000" 192.168.0.74:5000/swarm-jmeter-demo
+docker service create --replicas 1 --name swarm-jmeter-demo --network swarm-demo -p 9000:9000 <local-host-ip>:5000/swarm-jmeter-demo
 ```
+
 You can check it out to see information by running:
 ```
 docker service inspect --pretty swarm-jmeter-demo
@@ -134,7 +135,7 @@ docker service ps swarm-jmeter-demo
 
 We want to scale the service. Let's do five instances.
 ```
-docker service scale swarm-jmeter-demo=5
+docker service scale swarm-jmeter-demo=3
 ```
 
 And to see what nodes are running (as an example)
@@ -146,4 +147,20 @@ boomt2wwm3d0jrrgzeuwmg488  swarm-jmeter-demo.2  192.168.0.74:5000/swarm-jmeter-d
 35scnhi2m5hyie8qflvqpdkc6  swarm-jmeter-demo.4  192.168.0.74:5000/swarm-jmeter-demo  worker2   Running        Running 8 seconds ago   
 01gvf46qmn0y7zhvmnic7bwxx  swarm-jmeter-demo.5  192.168.0.74:5000/swarm-jmeter-demo  worker1   Running        Running 9 seconds ago 
 ```
+### Single Container Mode (Non-swarm)
+With the images built following the instructions in the swarm mode, it is simple to get a single container running. If the swarm is still running, turn it off with:
+
+```
+docker service rm swarm-jmeter-demo
+```
+
+Then, on the manager1 virtual machine, run: 
+
+```
+docker run -d -p 9000:9000 --name swarm-jmeter-demo <local-host-ip>:5000/swarm-jmeter-demo
+```
+
+
+### Load Testing
+Run `jmeter`, and open `./jmeter-tests/HTTP Request.jmx` and click run. This will create 300 threads to create requests against the cluster. If you check the Thread Group's "View Results in Table", you can see a summary of the samples, including some summary statistics. 
 
