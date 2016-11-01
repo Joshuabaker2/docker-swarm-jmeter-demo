@@ -4,7 +4,7 @@ The purpose of this demo is to demonstrate that a service running in a Docker sw
 ## Steps
 
 ### Swarm Mode
-1. Create a docker image based off the dockerfile:
+##### Create a docker image based off the dockerfile:
 
 ```
 docker build -t swarm-jmeter-demo .
@@ -20,7 +20,7 @@ And you should get a response. Take down the container after this
 docker stop swarm-jmeter-demo
 ```
 
-2. Set up a local registry to host your image
+##### Set up a local registry to host your image
 ```
 docker run -d -p 5000:5000 --restart=always --name registry registry:2
 ```
@@ -40,9 +40,7 @@ Test it by running
 docker run -d -p 9000:9000 --name swarm-jmeter-demo localhost:5000/swarm-jmeter-demo
 ```
 
-3. Modify docker-compose.yml to use your local ip.
-
-4. Create 3 virtual machines with 200 mb of RAM (so they are quickly overwhelmed)
+##### Create 3 virtual machines with 200 mb of RAM (so they are quickly overwhelmed)
 ```
 docker-machine create --driver virtualbox --virtualbox-memory 600 manager1
 docker-machine create --driver virtualbox --virtualbox-memory 600 worker1
@@ -57,18 +55,18 @@ Before we get any further, let's set up port forwarding for the manager node. We
 VBoxManage modifyvm "manager1" --natpf1 rule1,tcp,,9000,,9000
 ```
 
-5. Get the IP address of the manager
+##### Get the IP address of the manager
 ```
 docker-machine ip manager1
 ```
 Ours is `192.168.99.100`
 
-6. SSH into the manager node to create the swarm
+##### SSH into the manager node to create the swarm
 ```
 docker-machine ssh manager1
 ```
 
-7. Initialize the swarm
+##### Initialize the swarm
 ```
 $ docker swarm init --advertise-addr <manager1-ip>
 Swarm initialized: current node (dizg6iq1tt848dj0qn4y77pff) is now a manager.
@@ -83,7 +81,7 @@ To add a manager to this swarm, run 'docker swarm join-token manager' and follow
 
 ```
 
-8. In another terminal, ssh into another worker node, and join the swarm.
+##### In another terminal, ssh into another worker node, and join the swarm.
 ```
 docker-machine ssh worker1
 docker swarm join \
@@ -93,7 +91,7 @@ docker swarm join \
 
 Do this for both nodes. To verify that they have joined the swarm, run `docker node ls` in manager1 to see all the nodes. 
 
-9. ssh into the manager1, and modify the docker configs to allow our insecure registry: 
+##### ssh into the manager1, and modify the docker configs to allow our insecure registry: 
 ```
 sudo vi /etc/docker/daemon.json
 ```
@@ -107,6 +105,8 @@ And then restart the daemon:
 sudo /etc/init.d/docker restart
 ```
 
+You will need to repeat these steps also for worker1 and worker2.
+
 Test that the container can be fetched inside a worker node from your local repository (replacing the ip address with your local host ip address):
 ```
 docker run -d -p 9000:9000 --name swarm-jmeter-demo <local-host-ip>:5000/swarm-jmeter-demo
@@ -116,7 +116,7 @@ And make sure it is accessable locally on that node:
 curl localhost:9000/random
 ```
 
-10. Now you can start your service with the manager. First, we want to create an overlay network so the different nodes are accessible, and then we want to create the service in that network.
+##### Now you can start your service with the manager. First, we want to create an overlay network so the different nodes are accessible, and then we want to create the service in that network.
 ```
 docker network create -d overlay swarm-demo
 
