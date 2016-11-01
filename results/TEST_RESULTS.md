@@ -4,7 +4,7 @@ Yoga 2 Pro, Intel i5 Core, 8 GB memory.
 JMeter test used: 300 threads. 
 
 #### With swarm mode - 5 nodes:
-1) First fail occurred on Sample # 480. `worker1` (which had two instances running) failed, causing `worker2` to pick up those two instances. Latency reached a high of 164199ms, compared to the latency at the beginning of the test at 1448ms. Note that we were recording the screen so there was very high background CPU/RAM usage. Results can be disregarded, but demonstrate the swarm's ability to recover from failure. 
+1) First fail occurred on Sample # 480. `worker1` (which had two instances running) failed, causing `worker2` to pick up those two instances. Latency reached a high of 164199ms, compared to the latency at the beginning of the test at 1448ms. Note that we were recording the screen so there was very high background CPU/RAM usage. Results can be disregarded, but demonstrate the swarm's ability to recover from failure. To see what this looked like, view the `before-test.png` to see the swarm before running the test, and the `after-crashed-test.png` to see how the Docker Swarm detected the failure and redistributed the load. 
 
 2) No fail occurred. Average latency over 1000 samples: 
 Average latency: 20458
