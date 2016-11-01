@@ -40,7 +40,7 @@ Test it by running
 docker run -d -p 9000:9000 --name swarm-jmeter-demo localhost:5000/swarm-jmeter-demo
 ```
 
-##### Create 3 virtual machines with 200 mb of RAM (so they are quickly overwhelmed)
+##### Create 3 virtual machines with 600 mb of RAM (so they are quickly overwhelmed)
 ```
 docker-machine create --driver virtualbox --virtualbox-memory 600 manager1
 docker-machine create --driver virtualbox --virtualbox-memory 600 worker1
